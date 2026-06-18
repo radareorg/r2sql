@@ -1,0 +1,73 @@
+# r2sql
+
+SQL interface for [radare2](https://github.com/radareorg/radare2), powered
+by [`libxsql`](https://github.com/0xeb/libxsql).
+
+```sql
+SELECT name, size FROM funcs WHERE name LIKE 'main%';
+SELECT text     FROM strings WHERE text LIKE '%password%';
+UPDATE comments SET text = 'reviewed' WHERE addr = 0x1234;
+```
+
+`r2sql` exposes radare2's analysis state as live SQL virtual tables: every
+query re-issues the JSON form of the relevant r2 command (`aflj`, `izj`,
+`axtj`, …) against an in-process core (`r_core_cmd_str`) or a spawned
+`radare2 -q0` pipe — no flat dump, no stale snapshot.
+
+## Two flavors
+
+r2sql builds in two flavors from one source tree:
+
+| Flavor | Binary | What it is | Needs |
+|---|---|---|---|
+| **pipe-only** (default) | `r2sql` | portable single binary; **spawns and manages `radare2`** over a pipe (`--r2pipe`). No `r_*.dll` imports. | `radare2` on PATH at runtime |
+| **full** (libr) | `r2sql-full` (+ `core_r2sql` plugin) | embeds radare2 in-process (`r_core_cmd_str`), fastest, and adds the in-r2 `sql` plugin | a built radare2 (`-DRadare2_ROOT=<prefix>`) |
+
+The pipe-only `r2sql` is **always built**. The full `r2sql-full` + plugin are
+built additionally when you pass `-DR2SQL_BUILD_FULL=ON`. Both expose the exact
+same SQL surface, CLI, and HTTP/MCP servers. MCP support is gated behind
+`R2SQL_WITH_MCP=ON` (fastmcpp dependency).
+
+## Build
+
+```powershell
+# Pipe-only r2sql (default) — portable, needs radare2 on PATH:
+cmake -S . -B build/r2sql -G "Visual Studio 17 2022" -A x64
+cmake --build build/r2sql --config Release
+
+# Also build the full flavor (r2sql-full + core_r2sql plugin):
+cmake -S . -B build/r2sql -G "Visual Studio 17 2022" -A x64 \
+  -DR2SQL_BUILD_FULL=ON -DRadare2_ROOT=<radare2 install prefix>
+cmake --build build/r2sql --config Release
+```
+
+A single configure with `-DR2SQL_BUILD_FULL=ON` produces **both** `r2sql` and
+`r2sql-full` (+ the plugin). This is the standalone build; it also builds cleanly
+when vendored as a subdirectory of a larger project — the `CMakeLists.txt` here
+detects the situation and adapts.
+
+## Backends
+
+| Backend | When to use |
+|---|---|
+| `LibrBackend`   | In-process, fastest. Default when r2sql was built with `R2SQL_HAVE_LIBR=1`. |
+| `R2PipeBackend` | Spawns `radare2 -q0` and communicates over stdio. Default fallback; force with `--r2pipe`. |
+| `MockBackend`   | In-memory mock: canned command→response map, records issued commands — for embedding/offline use without a live radare2. |
+
+## Similar projects
+
+`r2sql` is part of a family of SQL interfaces over reverse-engineering and
+program-analysis backends, all sharing the
+[`libxsql`](https://github.com/0xeb/libxsql) virtual-table engine:
+
+| Project | Backend |
+|---|---|
+| [ghidrasql](https://github.com/0xeb/ghidrasql) | Ghidra |
+| [bnsql](https://github.com/0xeb/bnsql) | Binary Ninja |
+| [pdbsql](https://github.com/0xeb/pdbsql) | PDB symbol files |
+| [clangsql](https://github.com/0xeb/clangsql) | Clang / C++ ASTs |
+| [dwarfsql](https://github.com/0xeb/dwarfsql) | DWARF debug info |
+
+## License
+
+[MPL-2.0](LICENSE).
