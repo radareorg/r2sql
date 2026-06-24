@@ -54,6 +54,14 @@ detects the situation and adapts.
 | `R2PipeBackend` | Spawns `radare2 -q0` and communicates over stdio. Default fallback; force with `--r2pipe`. |
 | `MockBackend`   | In-memory mock: canned command→response map, records issued commands — for embedding/offline use without a live radare2. |
 
+## Skills (Claude Code / Codex)
+
+`r2sql` ships an agent-skills package —
+[`r2sql-skills`](https://github.com/0xeb/r2sql-skills) — that teaches Claude Code
+and Codex to drive it: query and annotate radare2 analysis through SQL, pick the
+right backend, and reach the HTTP/MCP servers. Install it from the plugin
+marketplace in that repo to point an agent at `r2sql`.
+
 ## Similar projects
 
 `r2sql` is part of a family of SQL interfaces over reverse-engineering and
@@ -67,6 +75,9 @@ program-analysis backends, all sharing the
 | [pdbsql](https://github.com/0xeb/pdbsql) | PDB symbol files |
 | [clangsql](https://github.com/0xeb/clangsql) | Clang / C++ ASTs |
 | [dwarfsql](https://github.com/0xeb/dwarfsql) | DWARF debug info |
+
+**Related:** agent skills for driving `r2sql` →
+[`r2sql-skills`](https://github.com/0xeb/r2sql-skills) (Claude Code / Codex).
 
 ## License
 
