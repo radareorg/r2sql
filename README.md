@@ -1,4 +1,6 @@
-# r2sql
+# r2xsql
+
+(wip, r2sql repo will soon be renamed to r2xsql).
 
 SQL interface for [radare2](https://github.com/radareorg/radare2), powered
 by [`libxsql`](https://github.com/0xeb/libxsql).
